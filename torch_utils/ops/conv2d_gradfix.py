@@ -168,9 +168,8 @@ def _conv2d_gradfix(transpose, weight_shape, stride, padding, output_padding, di
                 return c.contiguous(memory_format=(torch.channels_last if input.stride(1) == 1 else torch.contiguous_format))
 
             # General case => cuDNN.
-            name = 'aten::cudnn_convolution_transpose_backward_weight' if transpose else 'aten::cudnn_convolution_backward_weight'
-            flags = [torch.backends.cudnn.benchmark, torch.backends.cudnn.deterministic, torch.backends.cudnn.allow_tf32]
-            return torch._C._jit_get_operation(name)(weight_shape, grad_output, input, padding, stride, dilation, groups, *flags)
+            empty_weight = torch.empty(weight_shape, dtype=input.dtype, layout=input.layout, device=input.device)
+            return torch.ops.aten.convolution_backward(grad_output, input, empty_weight, bias_sizes=None, stride=stride, padding=padding, dilation=dilation, transposed=transpose, output_padding=output_padding, groups=groups, output_mask=[0,1,0])[1]
 
         @staticmethod
         def backward(ctx, grad2_grad_weight):
