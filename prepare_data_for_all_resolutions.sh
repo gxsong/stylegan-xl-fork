@@ -24,6 +24,6 @@ shift $((OPTIND -1))
 
 # Loop over resolutions and create zip files
 for res in "${resolutions[@]}"; do
-  zip_name="${image_type}_${res}.zip"
+  zip_name="${image_type}${res}.zip"
   echo "python dataset_tool.py --source=./data/$image_type --dest=./data/$zip_name --resolution=${res}x${res} --transform=center-crop"
 done
